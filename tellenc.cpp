@@ -90,8 +90,8 @@ enum UTF8_State {
 static const size_t MAX_CHAR = 256;
 static const unsigned char NON_TEXT_CHARS[] = { 0, 26, 127, 255 };
 static const char NUL = '\0';
-static const int ODD = 1;
-static const int EVEN = 2;
+static const int EVEN = 0;
+static const int ODD  = 1;
 
 static UTF8_State utf8_char_table[MAX_CHAR];
 
@@ -130,7 +130,7 @@ static freq_analysis_data_t freq_analysis_data[] = {
 static bool is_binary = false;
 static bool is_utf8_conformant = true;
 
-static int nul_stat = 0;
+static size_t nul_count[2];
 
 bool verbose = false;
 
@@ -142,16 +142,6 @@ static inline bool is_non_text(char ch)
         }
     }
     return false;
-}
-
-static inline int is_odd_even(size_t pos)
-{
-    pos &= 1;
-    if (pos) {
-        return ODD;
-    } else {
-        return EVEN;
-    }
 }
 
 void usage()
@@ -272,27 +262,27 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
     size_t dbyte_cnt = 0;
     size_t dbyte_hihi_cnt = 0;
 
-    if (len > 4) {
-        const char* result = check_ucs_bom(buffer);
-        if (result) {
+    if (len >= 4) {
+        if (const char* result = check_ucs_bom(buffer)) {
             return result;
         }
+    } else if (len == 0) {
+        return "unknown";
     }
 
     init_char_count(char_cnt);
 
-    const unsigned char* p = buffer;
     unsigned char ch;
     int last_ch = EOF;
     int utf8_state = UTF8_1;
-    while (p < buffer + len) {
-        ch = *p;
+    for (size_t i = 0; i < len; ++i) {
+        ch = buffer[i];
         if (is_non_text(ch)) {
-            if (!is_binary) {
+            if (!is_binary && !(ch == '\x1A' && i == len - 1)) {
                 is_binary = true;
             }
             if (ch == NUL) {
-                nul_stat |= is_odd_even(p - buffer);
+                nul_count[i & 1]++;
             }
         }
         if (is_utf8_conformant) {
@@ -347,7 +337,6 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
         } else if (ch >= 0x80) {
             last_ch = ch;
         }
-        p++;
     }
 
     sort(char_cnt, char_cnt + MAX_CHAR, greater_char_count());
@@ -375,12 +364,13 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
     }
 
     if (!is_utf8_conformant && is_binary) {
-        switch (nul_stat) {
-        case ODD:
-            return "utf-16le";
-        case EVEN:
+        if (nul_count[EVEN] != 0 && (nul_count[ODD] == 0 ||
+                                    nul_count[EVEN] / nul_count[ODD] > 20)) {
             return "utf-16";
-        default:
+        } else if (nul_count[ODD] != 0 && (nul_count[EVEN] == 0 ||
+                                    nul_count[ODD] / nul_count[EVEN] > 20)) {
+            return "utf-16le";
+        } else {
             return "binary";
         }
     } else if (dbyte_cnt == 0) {
@@ -389,9 +379,10 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
         return "utf-8";
     } else if (dbyte_hihi_cnt * 100 / dbyte_cnt < 5) {
         return "latin1";
-    } else if (dbyte_hihi_cnt == dbyte_cnt) {
-        return "gb2312";
     } else if (const char* enc = check_freq_dbytes(dbyte_char_cnt)) {
+        if (strcmp(enc, "gbk") == 0 && dbyte_hihi_cnt == dbyte_cnt) {
+            return "gb2312";
+        }
         return enc;
     }
     return NULL;
