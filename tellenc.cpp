@@ -33,9 +33,10 @@
  * @file    tellenc.cpp
  *
  * Program to guess the encoding of text.  It currently supports ASCII,
- * Latin1, UTF-8, GB2312, GBK, Big5, and any Unicode encodings with BOM.
+ * Latin1, UTF-8, UTF-16 (little-endian or big-endian), GB2312, GBK, Big5,
+ * and any Unicode encodings with BOM.
  *
- * @version 1.2, 2007/02/23
+ * @version 1.2, 2007/02/24
  * @author  Wu Yongwei
  */
 
@@ -49,6 +50,10 @@
 #include <stdio.h>          // fopen/fclose/fprintf/printf/puts
 #include <stdlib.h>         // exit
 #include <string.h>         // memcmp/strcmp/strerror
+
+#ifndef _WIN32
+#define __cdecl
+#endif
 
 #ifndef TELLENC_BUFFER_SIZE
 #define TELLENC_BUFFER_SIZE 100000
@@ -296,24 +301,24 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
                 }
                 break;
             case UTF8_2:
-                if (utf8_state == UTF8_1) {
-                    utf8_state = UTF8_2;
-                } else {
+                if (utf8_state != UTF8_1) {
                     is_utf8_conformant = false;
+                } else {
+                    utf8_state = UTF8_2;
                 }
                 break;
             case UTF8_3:
-                if (utf8_state == UTF8_1) {
-                    utf8_state = UTF8_3;
-                } else {
+                if (utf8_state != UTF8_1) {
                     is_utf8_conformant = false;
+                } else {
+                    utf8_state = UTF8_3;
                 }
                 break;
             case UTF8_4:
-                if (utf8_state == UTF8_1) {
-                    utf8_state = UTF8_4;
-                } else {
+                if (utf8_state != UTF8_1) {
                     is_utf8_conformant = false;
+                } else {
+                    utf8_state = UTF8_4;
                 }
                 break;
             case UTF8_TAIL:
@@ -364,10 +369,10 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
     }
 
     if (!is_utf8_conformant && is_binary) {
-        if (nul_count[EVEN] != 0 && (nul_count[ODD] == 0 ||
+        if (nul_count[EVEN] > 4 && (nul_count[ODD] == 0 ||
                                     nul_count[EVEN] / nul_count[ODD] > 20)) {
             return "utf-16";
-        } else if (nul_count[ODD] != 0 && (nul_count[EVEN] == 0 ||
+        } else if (nul_count[ODD] > 4 && (nul_count[EVEN] == 0 ||
                                     nul_count[ODD] / nul_count[EVEN] > 20)) {
             return "utf-16le";
         } else {
@@ -388,7 +393,7 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
     return NULL;
 }
 
-int main(int argc, char* argv[])
+int __cdecl main(int argc, char* argv[])
 {
     const char* filename;
     if (argc == 3 && strcmp(argv[1], "-v") == 0) {
