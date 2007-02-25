@@ -33,10 +33,10 @@
  * @file    tellenc.cpp
  *
  * Program to guess the encoding of text.  It currently supports ASCII,
- * Latin1, UTF-8, UTF-16 (little-endian or big-endian), GB2312, GBK, Big5,
- * and any Unicode encodings with BOM.
+ * UTF-8, UTF-16 (little-endian or big-endian), Latin1, Windows-1252,
+ * GB2312, GBK, Big5, and any Unicode encodings with BOM.
  *
- * @version 1.2, 2007/02/24
+ * @version 1.3, 2007/02/25
  * @author  Wu Yongwei
  */
 
@@ -53,6 +53,10 @@
 
 #ifndef _WIN32
 #define __cdecl
+#endif
+
+#ifdef _MSC_VER
+#pragma setlocale(".65001")
 #endif
 
 #ifndef TELLENC_BUFFER_SIZE
@@ -101,41 +105,51 @@ static const int ODD  = 1;
 static UTF8_State utf8_char_table[MAX_CHAR];
 
 static freq_analysis_data_t freq_analysis_data[] = {
-    { 0xa3ac, "gbk" },
-    { 0xa1a3, "gbk" },
-    { 0xa1a1, "gbk" },
-    { 0xa1ad, "gbk" },
-    { 0xb5c4, "gbk" },
-    { 0xbfc9, "gbk" },
-    { 0xbaf3, "gbk" },
-    { 0xd2bb, "gbk" },
-    { 0xced2, "gbk" },
-    { 0xcac7, "gbk" },
-    { 0xb8f6, "gbk" },
-    { 0xb2bb, "gbk" },
-    { 0xc8cb, "gbk" },
-    { 0xd5e2, "gbk" },
-    { 0xc1cb, "gbk" },
-    { 0xd6ae, "gbk" },
-    { 0xa141, "big5" },
-    { 0xa143, "big5" },
-    { 0xaaba, "big5" },
-    { 0xa7da, "big5" },
-    { 0xa54c, "big5" },
-    { 0xa66f, "big5" },
-    { 0xa4a3, "big5" },
-    { 0xa440, "big5" },
-    { 0xa446, "big5" },
-    { 0xa457, "big5" },
-    { 0xbba1, "big5" },
-    { 0xac4f, "big5" },
-    { 0xa662, "big5" }
+    { 0xe4e4, "windows-1252" },         // "ää" (Finnish)
+    { 0xa3ac, "gbk" },                  // "，"
+    { 0xa1a3, "gbk" },                  // "。"
+    { 0xa1a1, "gbk" },                  // "　"
+    { 0xb5c4, "gbk" },                  // "的"
+    { 0xc1cb, "gbk" },                  // "了"
+    { 0xd2bb, "gbk" },                  // "一"
+    { 0xcac7, "gbk" },                  // "是"
+    { 0xb2bb, "gbk" },                  // "不"
+    { 0xb8f6, "gbk" },                  // "个"
+    { 0xc8cb, "gbk" },                  // "人"
+    { 0xd5e2, "gbk" },                  // "这"
+    { 0xd3d0, "gbk" },                  // "有"
+    { 0xced2, "gbk" },                  // "我"
+    { 0xc4e3, "gbk" },                  // "你"
+    { 0xcbfb, "gbk" },                  // "他"
+    { 0xcbfd, "gbk" },                  // "她"
+    { 0xc9cf, "gbk" },                  // "上"
+    { 0xd6ae, "gbk" },                  // "之"
+    { 0xbfc9, "gbk" },                  // "可"
+    { 0xbaf3, "gbk" },                  // "后"
+    { 0xa141, "big5" },                 // "，"
+    { 0xa143, "big5" },                 // "。"
+    { 0xa140, "big5" },                 // "　"
+    { 0xaaba, "big5" },                 // "的"
+    { 0xa446, "big5" },                 // "了"
+    { 0xa440, "big5" },                 // "一"
+    { 0xac4f, "big5" },                 // "是"
+    { 0xa4a3, "big5" },                 // "不"
+    { 0xa7da, "big5" },                 // "我"
+    { 0xa741, "big5" },                 // "你"
+    { 0xa54c, "big5" },                 // "他"
+    { 0xa66f, "big5" },                 // "她"
+    { 0xadd3, "big5" },                 // "個"
+    { 0xa457, "big5" },                 // "上"
+    { 0xa662, "big5" },                 // "在"
+    { 0xbba1, "big5" }                  // "說"
 };
 
-static bool is_binary = false;
-static bool is_utf8_conformant = true;
-
 static size_t nul_count[2];
+
+static bool is_binary = false;
+static bool is_valid_utf8 = true;
+
+bool is_valid_latin1 = true;
 
 bool verbose = false;
 
@@ -160,25 +174,25 @@ void init_utf8_char_table()
     int ch = 0;
     utf8_char_table[ch] = UTF8_INVALID;
     ++ch;
-    for (; ch <= 0x7F; ++ch) {
+    for (; ch <= 0x7f; ++ch) {
         utf8_char_table[ch] = UTF8_1;
     }
-    for (; ch <= 0xBF; ++ch) {
+    for (; ch <= 0xbf; ++ch) {
         utf8_char_table[ch] = UTF8_TAIL;
     }
-    for (; ch <= 0xC1; ++ch) {
+    for (; ch <= 0xc1; ++ch) {
         utf8_char_table[ch] = UTF8_INVALID;
     }
-    for (; ch <= 0xDF; ++ch) {
+    for (; ch <= 0xdf; ++ch) {
         utf8_char_table[ch] = UTF8_2;
     }
-    for (; ch <= 0xEF; ++ch) {
+    for (; ch <= 0xef; ++ch) {
         utf8_char_table[ch] = UTF8_3;
     }
-    for (; ch <= 0xF4; ++ch) {
+    for (; ch <= 0xf4; ++ch) {
         utf8_char_table[ch] = UTF8_4;
     }
-    for (; ch <= 0xFF; ++ch) {
+    for (; ch <= 0xff; ++ch) {
         utf8_char_table[ch] = UTF8_INVALID;
     }
 }
@@ -282,6 +296,8 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
     int utf8_state = UTF8_1;
     for (size_t i = 0; i < len; ++i) {
         ch = buffer[i];
+        char_cnt[ch].second++;
+
         if (is_non_text(ch)) {
             if (!is_binary && !(ch == '\x1A' && i == len - 1)) {
                 is_binary = true;
@@ -290,33 +306,34 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
                 nul_count[i & 1]++;
             }
         }
-        if (is_utf8_conformant) {
+
+        if (is_valid_utf8) {
             switch (utf8_char_table[ch]) {
             case UTF8_INVALID:
-                is_utf8_conformant = false;
+                is_valid_utf8 = false;
                 break;
             case UTF8_1:
                 if (utf8_state != UTF8_1) {
-                    is_utf8_conformant = false;
+                    is_valid_utf8 = false;
                 }
                 break;
             case UTF8_2:
                 if (utf8_state != UTF8_1) {
-                    is_utf8_conformant = false;
+                    is_valid_utf8 = false;
                 } else {
                     utf8_state = UTF8_2;
                 }
                 break;
             case UTF8_3:
                 if (utf8_state != UTF8_1) {
-                    is_utf8_conformant = false;
+                    is_valid_utf8 = false;
                 } else {
                     utf8_state = UTF8_3;
                 }
                 break;
             case UTF8_4:
                 if (utf8_state != UTF8_1) {
-                    is_utf8_conformant = false;
+                    is_valid_utf8 = false;
                 } else {
                     utf8_state = UTF8_4;
                 }
@@ -325,12 +342,18 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
                 if (utf8_state > UTF8_1) {
                     utf8_state--;
                 } else {
-                    is_utf8_conformant = false;
+                    is_valid_utf8 = false;
                 }
                 break;
             }
         }
-        char_cnt[ch].second++;
+
+        if (is_valid_latin1) {
+            if (ch >= 0x80 && ch < 0xa0) {
+                is_valid_latin1 = false;
+            }
+        }
+
         if (last_ch != EOF) {
             uint16_t dbyte_char = (last_ch << 8) + ch;
             mp_dbyte_char_cnt[dbyte_char]++;
@@ -368,7 +391,7 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
         printf("%u unique double-byte characters\n", dbyte_char_cnt.size());
     }
 
-    if (!is_utf8_conformant && is_binary) {
+    if (!is_valid_utf8 && is_binary) {
         if (nul_count[EVEN] > 4 && (nul_count[ODD] == 0 ||
                                     nul_count[EVEN] / nul_count[ODD] > 20)) {
             return "utf-16";
@@ -380,10 +403,10 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
         }
     } else if (dbyte_cnt == 0) {
         return "ascii";
-    } else if (is_utf8_conformant) {
+    } else if (is_valid_utf8) {
         return "utf-8";
     } else if (dbyte_hihi_cnt * 100 / dbyte_cnt < 5) {
-        return "latin1";
+        return "windows-1252";
     } else if (const char* enc = check_freq_dbytes(dbyte_char_cnt)) {
         if (strcmp(enc, "gbk") == 0 && dbyte_hihi_cnt == dbyte_cnt) {
             return "gb2312";
@@ -421,7 +444,11 @@ int __cdecl main(int argc, char* argv[])
 
     init_utf8_char_table();
     if (const char* enc = tellenc(buffer, len)) {
-        puts(enc);
+        if (is_valid_latin1 && strcmp(enc, "windows-1252") == 0) {
+            puts("latin1");
+        } else {
+            puts(enc);
+        }
     } else {
         puts("unknown");
     }
