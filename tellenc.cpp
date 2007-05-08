@@ -36,7 +36,7 @@
  * UTF-8, UTF-16 (little-endian or big-endian), Latin1, Windows-1252,
  * GB2312, GBK, Big5, and any Unicode encodings with BOM.
  *
- * @version 1.3, 2007/02/25
+ * @version 1.4, 2007/05/08
  * @author  Wu Yongwei
  */
 
@@ -60,7 +60,7 @@
 #endif
 
 #ifndef TELLENC_BUFFER_SIZE
-#define TELLENC_BUFFER_SIZE 100000
+#define TELLENC_BUFFER_SIZE 200000
 #endif
 
 using namespace std;
