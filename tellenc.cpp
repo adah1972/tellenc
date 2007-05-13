@@ -34,9 +34,9 @@
  *
  * Program to guess the encoding of text.  It currently supports ASCII,
  * UTF-8, UTF-16 (little-endian or big-endian), Latin1, Windows-1252,
- * GB2312, GBK, Big5, and any Unicode encodings with BOM.
+ * CP437, GB2312, GBK, Big5, and any Unicode encodings with BOM.
  *
- * @version 1.4, 2007/05/08
+ * @version 1.5, 2007/05/13
  * @author  Wu Yongwei
  */
 
@@ -106,6 +106,9 @@ static UTF8_State utf8_char_table[MAX_CHAR];
 
 static freq_analysis_data_t freq_analysis_data[] = {
     { 0xe4e4, "windows-1252" },         // "ää" (Finnish)
+    { 0xc4c4, "cp437" },                // "──"
+    { 0xcdcd, "cp437" },                // "══"
+    { 0xdbdb, "cp437" },                // "██"
     { 0xa3ac, "gbk" },                  // "，"
     { 0xa1a3, "gbk" },                  // "。"
     { 0xa1a1, "gbk" },                  // "　"
