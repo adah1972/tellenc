@@ -36,7 +36,7 @@
  * UTF-8, UTF-16 (little-endian or big-endian), Latin1, Windows-1252,
  * CP437, GB2312, GBK, Big5, and any Unicode encodings with BOM.
  *
- * @version 1.6, 2007/08/16
+ * @version 1.7, 2007/08/16
  * @author  Wu Yongwei
  */
 
@@ -113,6 +113,7 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0xdbdb, "cp437" },                // "██"
     { 0xa3ac, "gbk" },                  // "，"
     { 0xa1a3, "gbk" },                  // "。"
+    { 0xa3ba, "gbk" },                  // "："
     { 0xa1a1, "gbk" },                  // "　"
     { 0xb5c4, "gbk" },                  // "的"
     { 0xc1cb, "gbk" },                  // "了"
@@ -133,22 +134,24 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0xbfc9, "gbk" },                  // "可"
     { 0xbaf3, "gbk" },                  // "后"
     { 0xd6d0, "gbk" },                  // "中"
+    { 0xd0d0, "gbk" },                  // "行"
     { 0xa141, "big5" },                 // "，"
     { 0xa143, "big5" },                 // "。"
+    { 0xa147, "big5" },                 // "："
     { 0xa140, "big5" },                 // "　"
     { 0xaaba, "big5" },                 // "的"
     { 0xa446, "big5" },                 // "了"
     { 0xa440, "big5" },                 // "一"
     { 0xac4f, "big5" },                 // "是"
     { 0xa4a3, "big5" },                 // "不"
+    { 0xa448, "big5" },                 // "人"
     { 0xa7da, "big5" },                 // "我"
     { 0xa741, "big5" },                 // "你"
     { 0xa54c, "big5" },                 // "他"
     { 0xa66f, "big5" },                 // "她"
-    { 0xadd3, "big5" },                 // "個"
     { 0xa457, "big5" },                 // "上"
     { 0xa662, "big5" },                 // "在"
-    { 0xbba1, "big5" }                  // "說"
+    { 0xa65e, "big5" }                  // "回"
 };
 
 static size_t nul_count[2];
