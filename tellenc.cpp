@@ -36,7 +36,7 @@
  * UTF-8, UTF-16 (little-endian or big-endian), Latin1, Windows-1252,
  * CP437, GB2312, GBK, Big5, and any Unicode encodings with BOM.
  *
- * @version 1.5, 2007/05/13
+ * @version 1.6, 2007/08/16
  * @author  Wu Yongwei
  */
 
@@ -106,6 +106,8 @@ static UTF8_State utf8_char_table[MAX_CHAR];
 
 static freq_analysis_data_t freq_analysis_data[] = {
     { 0xe4e4, "windows-1252" },         // "ää" (Finnish)
+    { 0x8474, "cp437" },                // "ät" (German)
+    { 0x8172, "cp437" },                // "ür" (German)
     { 0xc4c4, "cp437" },                // "──"
     { 0xcdcd, "cp437" },                // "══"
     { 0xdbdb, "cp437" },                // "██"
@@ -126,9 +128,11 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0xcbfb, "gbk" },                  // "他"
     { 0xcbfd, "gbk" },                  // "她"
     { 0xc9cf, "gbk" },                  // "上"
+    { 0xbfb4, "gbk" },                  // "看"
     { 0xd6ae, "gbk" },                  // "之"
     { 0xbfc9, "gbk" },                  // "可"
     { 0xbaf3, "gbk" },                  // "后"
+    { 0xd6d0, "gbk" },                  // "中"
     { 0xa141, "big5" },                 // "，"
     { 0xa143, "big5" },                 // "。"
     { 0xa140, "big5" },                 // "　"
@@ -408,13 +412,13 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
         return "ascii";
     } else if (is_valid_utf8) {
         return "utf-8";
-    } else if (dbyte_hihi_cnt * 100 / dbyte_cnt < 5) {
-        return "windows-1252";
     } else if (const char* enc = check_freq_dbytes(dbyte_char_cnt)) {
         if (strcmp(enc, "gbk") == 0 && dbyte_hihi_cnt == dbyte_cnt) {
             return "gb2312";
         }
         return enc;
+    } else if (dbyte_hihi_cnt * 100 / dbyte_cnt < 5) {
+        return "windows-1252";
     }
     return NULL;
 }
