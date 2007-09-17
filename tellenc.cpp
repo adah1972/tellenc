@@ -152,7 +152,7 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0xadd3, "big5" },                 // "個"
     { 0xa457, "big5" },                 // "上"
     { 0xa662, "big5" },                 // "在"
-    { 0xbba1, "big5" }                  // "說"
+    { 0xbba1, "big5" },                 // "說"
     { 0xa65e, "big5" }                  // "回"
 };
 
