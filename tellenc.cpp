@@ -36,7 +36,7 @@
  * UTF-8, UTF-16 (little-endian or big-endian), Latin1, Windows-1252,
  * CP437, GB2312, GBK, Big5, and any Unicode encodings with BOM.
  *
- * @version 1.7, 2007/08/16
+ * @version 1.8, 2007/09/18
  * @author  Wu Yongwei
  */
 
@@ -149,8 +149,10 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0xa741, "big5" },                 // "你"
     { 0xa54c, "big5" },                 // "他"
     { 0xa66f, "big5" },                 // "她"
+    { 0xadd3, "big5" },                 // "個"
     { 0xa457, "big5" },                 // "上"
     { 0xa662, "big5" },                 // "在"
+    { 0xbba1, "big5" }                  // "說"
     { 0xa65e, "big5" }                  // "回"
 };
 
