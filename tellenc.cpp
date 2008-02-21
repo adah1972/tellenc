@@ -1,7 +1,7 @@
 // vim: expandtab shiftwidth=4 softtabstop=4 tabstop=4
 
 /*
- * Copyright (C) 2006-2007 Wu Yongwei <wuyongwei@gmail.com>
+ * Copyright (C) 2006-2008 Wu Yongwei <wuyongwei@gmail.com>
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the authors be held liable for any
@@ -20,6 +20,10 @@
  * 3. This notice may not be removed or altered from any source
  *    distribution.
  *
+ *
+ * The latest version of this software should be available at:
+ *      <URL:http://wyw.dcweb.cn>
+ *
  */
 
 //
@@ -32,11 +36,11 @@
 /**
  * @file    tellenc.cpp
  *
- * Program to guess the encoding of text.  It currently supports ASCII,
- * UTF-8, UTF-16 (little-endian or big-endian), Latin1, Windows-1252,
+ * Program to detect the encoding of text.  It currently supports ASCII,
+ * UTF-8, UTF-16/32 (little-endian or big-endian), Latin1, Windows-1252,
  * CP437, GB2312, GBK, Big5, and any Unicode encodings with BOM.
  *
- * @version 1.8, 2007/09/18
+ * @version 1.9, 2008/02/20
  * @author  Wu Yongwei
  */
 
@@ -66,7 +70,6 @@
 using namespace std;
 
 typedef unsigned short uint16_t;
-typedef unsigned int uint32_t;
 typedef pair<uint16_t, size_t> char_count_t;
 
 struct freq_analysis_data_t {
@@ -99,6 +102,7 @@ enum UTF8_State {
 static const size_t MAX_CHAR = 256;
 static const unsigned char NON_TEXT_CHARS[] = { 0, 26, 127, 255 };
 static const char NUL = '\0';
+static const char DOS_EOF = '\x1A';
 static const int EVEN = 0;
 static const int ODD  = 1;
 
@@ -156,12 +160,12 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0xa65e, "big5" }                  // "回"
 };
 
-static size_t nul_count[2];
+static size_t nul_count_byte[2];
+static size_t nul_count_word[2];
 
 static bool is_binary = false;
 static bool is_valid_utf8 = true;
-
-bool is_valid_latin1 = true;
+static bool is_valid_latin1 = true;
 
 bool verbose = false;
 
@@ -173,12 +177,6 @@ static inline bool is_non_text(char ch)
         }
     }
     return false;
-}
-
-void usage()
-{
-    fprintf(stderr, "Usage: tellenc [-v] <filename> \n");
-    exit(EXIT_FAILURE);
 }
 
 void init_utf8_char_table()
@@ -272,7 +270,7 @@ static const char* check_dbyte(uint16_t dbyte)
     return NULL;
 }
 
-const char* check_freq_dbytes(const vector<char_count_t>& dbyte_char_cnt)
+static const char* check_freq_dbytes(const vector<char_count_t>& dbyte_char_cnt)
 {
     size_t max_comp_idx = 10;
     if (max_comp_idx > dbyte_char_cnt.size()) {
@@ -286,7 +284,7 @@ const char* check_freq_dbytes(const vector<char_count_t>& dbyte_char_cnt)
     return NULL;
 }
 
-const char* tellenc(const unsigned char* const buffer, const size_t len)
+const char* tellenc2(const unsigned char* const buffer, const size_t len)
 {
     char_count_t char_cnt[MAX_CHAR];
     map<uint16_t, size_t> mp_dbyte_char_cnt;
@@ -310,15 +308,24 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
         ch = buffer[i];
         char_cnt[ch].second++;
 
+        // Check for binary data (including UTF-16/32)
         if (is_non_text(ch)) {
-            if (!is_binary && !(ch == '\x1A' && i == len - 1)) {
+            if (!is_binary && !(ch == DOS_EOF && i == len - 1)) {
                 is_binary = true;
             }
             if (ch == NUL) {
-                nul_count[i & 1]++;
+                // Count for NULs in even- and odd-number bytes
+                nul_count_byte[i & 1]++;
+                if (i & 1) {
+                    if (buffer[i - 1] == NUL) {
+                        // Count for NULs in even- and odd-number words
+                        nul_count_word[(i / 2) & 1]++;
+                    }
+                }
             }
         }
 
+        // Check for UTF-8 validity
         if (is_valid_utf8) {
             switch (utf8_char_table[ch]) {
             case UTF8_INVALID:
@@ -360,12 +367,14 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
             }
         }
 
+        // Check whether non-Latin1 characters appear
         if (is_valid_latin1) {
             if (ch >= 0x80 && ch < 0xa0) {
                 is_valid_latin1 = false;
             }
         }
 
+        // Construct double-bytes and count
         if (last_ch != EOF) {
             uint16_t dbyte_char = (last_ch << 8) + ch;
             mp_dbyte_char_cnt[dbyte_char]++;
@@ -379,12 +388,14 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
         }
     }
 
+    // Get the character counts in descending order
     sort(char_cnt, char_cnt + MAX_CHAR, greater_char_count());
 
     if (verbose) {
         print_char_cnt(char_cnt);
     }
 
+    // Get the double-byte counts in descending order
     vector<char_count_t> dbyte_char_cnt;
     for (map<uint16_t, size_t>::iterator it = mp_dbyte_char_cnt.begin();
             it != mp_dbyte_char_cnt.end(); ++it) {
@@ -404,28 +415,60 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
     }
 
     if (!is_valid_utf8 && is_binary) {
-        if (nul_count[EVEN] > 4 && (nul_count[ODD] == 0 ||
-                                    nul_count[EVEN] / nul_count[ODD] > 20)) {
+        // Heuristics for UTF-16/32
+        if        (nul_count_byte[EVEN] > 4 &&
+                   (nul_count_byte[ODD] == 0 ||
+                    nul_count_byte[EVEN] / nul_count_byte[ODD] > 20)) {
             return "utf-16";
-        } else if (nul_count[ODD] > 4 && (nul_count[EVEN] == 0 ||
-                                    nul_count[ODD] / nul_count[EVEN] > 20)) {
+        } else if (nul_count_byte[ODD] > 4 &&
+                   (nul_count_byte[EVEN] == 0 ||
+                    nul_count_byte[ODD] / nul_count_byte[EVEN] > 20)) {
             return "utf-16le";
+        } else if (nul_count_word[EVEN] > 4 &&
+                   (nul_count_word[ODD] == 0 ||
+                    nul_count_word[EVEN] / nul_count_word[ODD] > 20)) {
+            return "ucs-4";   // utf-32 is not a built-in encoding for Vim
+        } else if (nul_count_word[ODD] > 4 &&
+                   (nul_count_word[EVEN] == 0 ||
+                    nul_count_word[ODD] / nul_count_word[EVEN] > 20)) {
+            return "ucs-4le"; // utf-32le is not a built-in encoding for Vim
         } else {
             return "binary";
         }
     } else if (dbyte_cnt == 0) {
+        // No characters outside the scope of ASCII
         return "ascii";
     } else if (is_valid_utf8) {
+        // Only valid UTF-8 sequences
         return "utf-8";
     } else if (const char* enc = check_freq_dbytes(dbyte_char_cnt)) {
         if (strcmp(enc, "gbk") == 0 && dbyte_hihi_cnt == dbyte_cnt) {
+            // Special case for GB2312: no high-byte followed by a low-byte
             return "gb2312";
         }
         return enc;
     } else if (dbyte_hihi_cnt * 100 / dbyte_cnt < 5) {
+        // Mostly a low-byte follows a high-byte
         return "windows-1252";
     }
     return NULL;
+}
+
+const char* tellenc(const char* const buffer, const size_t len)
+{
+    const char* enc = tellenc2((const unsigned char* const)buffer, len);
+    if (is_valid_latin1 && strcmp(enc, "windows-1252") == 0) {
+        // Latin1 is subset of Windows-1252
+        return "latin1";
+    } else {
+        return enc;
+    }
+}
+
+static void usage()
+{
+    fprintf(stderr, "Usage: tellenc [-v] <filename> \n");
+    exit(EXIT_FAILURE);
 }
 
 int __cdecl main(int argc, char* argv[])
@@ -450,21 +493,17 @@ int __cdecl main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    unsigned char buffer[TELLENC_BUFFER_SIZE];
+    char buffer[TELLENC_BUFFER_SIZE];
     size_t len;
     len = fread(buffer, 1, sizeof buffer, fp);
+    fclose(fp);
 
     init_utf8_char_table();
     if (const char* enc = tellenc(buffer, len)) {
-        if (is_valid_latin1 && strcmp(enc, "windows-1252") == 0) {
-            puts("latin1");
-        } else {
-            puts(enc);
-        }
+        puts(enc);
     } else {
         puts("unknown");
     }
 
-    fclose(fp);
     return 0;
 }
