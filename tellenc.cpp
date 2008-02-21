@@ -38,9 +38,9 @@
  *
  * Program to detect the encoding of text.  It currently supports ASCII,
  * UTF-8, UTF-16/32 (little-endian or big-endian), Latin1, Windows-1252,
- * CP437, GB2312, GBK, Big5, and any Unicode encodings with BOM.
+ * CP437, GB2312, GBK, and Big5.
  *
- * @version 1.9, 2008/02/20
+ * @version 1.10, 2008/02/21
  * @author  Wu Yongwei
  */
 
