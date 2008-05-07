@@ -40,7 +40,7 @@
  * UTF-8, UTF-16/32 (little-endian or big-endian), Latin1, Windows-1252,
  * CP437, GB2312, GBK, and Big5.
  *
- * @version 1.10, 2008/02/21
+ * @version 1.12, 2008/05/07
  * @author  Wu Yongwei
  */
 
@@ -110,8 +110,13 @@ static UTF8_State utf8_char_table[MAX_CHAR];
 
 static freq_analysis_data_t freq_analysis_data[] = {
     { 0xe4e4, "windows-1252" },         // "ää" (Finnish)
-    { 0x8474, "cp437" },                // "ät" (German)
+    { 0x8220, "cp437" },                // "é " (French)
+    { 0x8263, "cp437" },                // "éc" (French)
+    { 0x8265, "cp437" },                // "ée" (French)
+    { 0x8272, "cp437" },                // "ér" (French)
+    { 0x8520, "cp437" },                // "à " (French)
     { 0x8172, "cp437" },                // "ür" (German)
+    { 0x8474, "cp437" },                // "ät" (German)
     { 0xc4c4, "cp437" },                // "──"
     { 0xcdcd, "cp437" },                // "══"
     { 0xdbdb, "cp437" },                // "██"
@@ -457,7 +462,7 @@ const char* tellenc2(const unsigned char* const buffer, const size_t len)
 const char* tellenc(const char* const buffer, const size_t len)
 {
     const char* enc = tellenc2((const unsigned char* const)buffer, len);
-    if (is_valid_latin1 && strcmp(enc, "windows-1252") == 0) {
+    if (is_valid_latin1 && enc && strcmp(enc, "windows-1252") == 0) {
         // Latin1 is subset of Windows-1252
         return "latin1";
     } else {
