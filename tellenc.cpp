@@ -22,7 +22,7 @@
  *
  *
  * The latest version of this software should be available at:
- *      <URL:http://wyw.dcweb.cn>
+ *      <URL:http://wyw.dcweb.cn/>
  *
  */
 
@@ -40,7 +40,7 @@
  * UTF-8, UTF-16/32 (little-endian or big-endian), Latin1, Windows-1252,
  * CP437, GB2312, GBK, and Big5.
  *
- * @version 1.12, 2008/05/07
+ * @version 1.13, 2008/08/22
  * @author  Wu Yongwei
  */
 
@@ -59,9 +59,16 @@
 #define __cdecl
 #endif
 
-#ifdef _MSC_VER
-#pragma setlocale(".65001")
-#endif
+/* The following is the way what I expected MSVC to work: treat the text
+ * here as in UTF-8, so it won't emit warnings for the UTF-8 comments
+ * below.  It seems it never really works: it is unnecessary in versions
+ * prior to Visual C++ 2005, and will even cause errors beginning in
+ * that version.  The new versions of MSVC accept the UTF-8 BOM
+ * character to interpret the file correctly, but the BOM causes errors
+ * in MSVC 6 and GCC 2/3. */
+//#ifdef _MSC_VER
+//#pragma setlocale(".65001")
+//#endif
 
 #ifndef TELLENC_BUFFER_SIZE
 #define TELLENC_BUFFER_SIZE 200000
