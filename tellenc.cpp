@@ -40,7 +40,7 @@
  * UTF-8, UTF-16/32 (little-endian or big-endian), Latin1, Windows-1252,
  * CP437, GB2312, GBK, and Big5.
  *
- * @version 1.13, 2008/08/22
+ * @version 1.14, 2008/10/07
  * @author  Wu Yongwei
  */
 
@@ -151,6 +151,11 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0xbaf3, "gbk" },                  // "后"
     { 0xd6d0, "gbk" },                  // "中"
     { 0xd0d0, "gbk" },                  // "行"
+    { 0xb8d0, "gbk" },                  // "感"
+    { 0xbef5, "gbk" },                  // "觉"
+    { 0xc4ea, "gbk" },                  // "年"
+    { 0xd4c2, "gbk" },                  // "月"
+    { 0xc8d5, "gbk" },                  // "日"
     { 0xa141, "big5" },                 // "，"
     { 0xa143, "big5" },                 // "。"
     { 0xa147, "big5" },                 // "："
