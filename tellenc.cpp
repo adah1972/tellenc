@@ -1,7 +1,7 @@
 // vim: expandtab shiftwidth=4 softtabstop=4 tabstop=4
 
 /*
- * Copyright (C) 2006-2008 Wu Yongwei <wuyongwei@gmail.com>
+ * Copyright (C) 2006-2010 Wu Yongwei <wuyongwei@gmail.com>
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the authors be held liable for any
@@ -38,9 +38,9 @@
  *
  * Program to detect the encoding of text.  It currently supports ASCII,
  * UTF-8, UTF-16/32 (little-endian or big-endian), Latin1, Windows-1252,
- * CP437, GB2312, GBK, and Big5.
+ * CP437, GB2312, GBK, Big5, and SJIS.
  *
- * @version 1.14, 2008/10/07
+ * @version 1.15, 2010/03/28
  * @author  Wu Yongwei
  */
 
@@ -127,10 +127,10 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0xc4c4, "cp437" },                // "──"
     { 0xcdcd, "cp437" },                // "══"
     { 0xdbdb, "cp437" },                // "██"
-    { 0xa3ac, "gbk" },                  // "，"
-    { 0xa1a3, "gbk" },                  // "。"
-    { 0xa3ba, "gbk" },                  // "："
     { 0xa1a1, "gbk" },                  // "　"
+    { 0xa1a3, "gbk" },                  // "。"
+    { 0xa3ac, "gbk" },                  // "，"
+    { 0xa3ba, "gbk" },                  // "："
     { 0xb5c4, "gbk" },                  // "的"
     { 0xc1cb, "gbk" },                  // "了"
     { 0xd2bb, "gbk" },                  // "一"
@@ -151,15 +151,18 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0xbaf3, "gbk" },                  // "后"
     { 0xd6d0, "gbk" },                  // "中"
     { 0xd0d0, "gbk" },                  // "行"
+    { 0xb1d2, "gbk" },                  // "币"
+    { 0xb3f6, "gbk" },                  // "出"
+    { 0xb7d1, "gbk" },                  // "费"
     { 0xb8d0, "gbk" },                  // "感"
     { 0xbef5, "gbk" },                  // "觉"
     { 0xc4ea, "gbk" },                  // "年"
     { 0xd4c2, "gbk" },                  // "月"
     { 0xc8d5, "gbk" },                  // "日"
+    { 0xa140, "big5" },                 // "　"
     { 0xa141, "big5" },                 // "，"
     { 0xa143, "big5" },                 // "。"
     { 0xa147, "big5" },                 // "："
-    { 0xa140, "big5" },                 // "　"
     { 0xaaba, "big5" },                 // "的"
     { 0xa446, "big5" },                 // "了"
     { 0xa440, "big5" },                 // "一"
@@ -174,7 +177,27 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0xa457, "big5" },                 // "上"
     { 0xa662, "big5" },                 // "在"
     { 0xbba1, "big5" },                 // "說"
-    { 0xa65e, "big5" }                  // "回"
+    { 0xa65e, "big5" },                 // "回"
+    { 0x8140, "sjis" },                 // "　"
+    { 0x8141, "sjis" },                 // "、"
+    { 0x8142, "sjis" },                 // "。"
+    { 0x8145, "sjis" },                 // "・"
+    { 0x8146, "sjis" },                 // "："
+    { 0x815b, "sjis" },                 // "ー"
+    { 0x82b5, "sjis" },                 // "し"
+    { 0x82bd, "sjis" },                 // "た"
+    { 0x82c8, "sjis" },                 // "な"
+    { 0x82c9, "sjis" },                 // "に"
+    { 0x82cc, "sjis" },                 // "の"
+    { 0x82dc, "sjis" },                 // "ま"
+    { 0x82f0, "sjis" },                 // "を"
+    { 0x8367, "sjis" },                 // "ト"
+    { 0x8393, "sjis" },                 // "ン"
+    { 0x89ef, "sjis" },                 // "会"
+    { 0x906c, "sjis" },                 // "人"
+    { 0x9094, "sjis" },                 // "数"
+    { 0x93fa, "sjis" },                 // "日"
+    { 0x95f1, "sjis" },                 // "報"
 };
 
 static size_t nul_count_byte[2];
