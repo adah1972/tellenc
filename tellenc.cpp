@@ -87,7 +87,8 @@
 using namespace std;
 
 typedef unsigned short uint16_t;
-typedef pair<uint16_t, size_t> char_count_t;
+typedef unsigned int   uint32_t;
+typedef pair<uint16_t, uint32_t> char_count_t;
 
 struct freq_analysis_data_t {
     uint16_t    dbyte;
@@ -366,9 +367,9 @@ static const char* check_freq_dbytes(const vector<char_count_t>& dbyte_char_cnt)
 const char* tellenc2(const unsigned char* const buffer, const size_t len)
 {
     char_count_t char_cnt[MAX_CHAR];
-    map<uint16_t, size_t> mp_dbyte_char_cnt;
-    size_t dbyte_cnt = 0;
-    size_t dbyte_hihi_cnt = 0;
+    map<uint16_t, uint32_t> mp_dbyte_char_cnt;
+    uint32_t dbyte_cnt = 0;
+    uint32_t dbyte_hihi_cnt = 0;
 
     if (len >= 4) {
         if (const char* result = check_ucs_bom(buffer)) {
@@ -476,7 +477,7 @@ const char* tellenc2(const unsigned char* const buffer, const size_t len)
 
     // Get the double-byte counts in descending order
     vector<char_count_t> dbyte_char_cnt;
-    for (map<uint16_t, size_t>::iterator it = mp_dbyte_char_cnt.begin();
+    for (map<uint16_t, uint32_t>::iterator it = mp_dbyte_char_cnt.begin();
             it != mp_dbyte_char_cnt.end(); ++it) {
         dbyte_char_cnt.push_back(*it);
     }
@@ -487,10 +488,11 @@ const char* tellenc2(const unsigned char* const buffer, const size_t len)
     if (verbose) {
         print_dbyte_char_cnt(dbyte_char_cnt);
         printf("\n");
-        printf("%u characters\n", len);
+        printf("%u characters\n", (unsigned)len);
         printf("%u double-byte characters\n", dbyte_cnt);
         printf("%u double-byte hi-hi characters\n", dbyte_hihi_cnt);
-        printf("%u unique double-byte characters\n", dbyte_char_cnt.size());
+        printf("%u unique double-byte characters\n",
+               (unsigned)dbyte_char_cnt.size());
     }
 
     if (!is_valid_utf8 && is_binary) {
