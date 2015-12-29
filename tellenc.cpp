@@ -33,7 +33,7 @@
  * UTF-8, UTF-16/32 (little-endian or big-endian), Latin1, Windows-1252,
  * CP437, GB2312, GBK, Big5, and SJIS, among others.
  *
- * @version 1.17, 2015/12/29
+ * @version 1.18, 2015/12/29
  * @author  Wu Yongwei
  */
 
@@ -103,6 +103,8 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0x9a74, "windows-1250" },         // "št" (Czech)
     { 0xe865, "windows-1250" },         // "če" (Czech)
     { 0xf865, "windows-1250" },         // "ře" (Czech)
+    { 0xe973, "windows-1250" },         // "és" (Hungarian)
+    { 0xe167, "windows-1250" },         // "ág" (Hungarian)
     { 0xb36f, "windows-1250" },         // "ło" (Polish)
     { 0xea7a, "windows-1250" },         // "ęz" (Polish)
     { 0xf377, "windows-1250" },         // "ów" (Polish)
