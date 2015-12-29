@@ -61,7 +61,7 @@
  * You are welcome to send me patches.  Be sure to also send me the test
  * text file.
  *
- * @version 1.16, 2015/12/28
+ * @version 1.17, 2015/12/29
  * @author  Wu Yongwei
  */
 
@@ -238,6 +238,11 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0xb1db, "euc-kr" },               // "글"
     { 0xc5e4, "euc-kr" },               // "토"
     { 0xc1a4, "euc-kr" },               // "정"
+    { 0xc920, "koi8-r" },               // "и "
+    { 0xc7cf, "koi8-r" },               // "го"
+    { 0xcbcf, "koi8-r" },               // "ко"
+    { 0xd3cb, "koi8-r" },               // "ск"
+    { 0xd3d4, "koi8-r" },               // "ст"
 };
 
 static size_t nul_count_byte[2];
