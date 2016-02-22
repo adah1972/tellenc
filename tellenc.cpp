@@ -60,7 +60,9 @@ using namespace std;
 
 typedef unsigned short uint16_t;
 typedef unsigned int   uint32_t;
-typedef pair<uint16_t, uint32_t> char_count_t;
+typedef pair<uint16_t, uint32_t>  char_count_t;
+typedef map<uint16_t, uint32_t>   char_count_map_t;
+typedef vector<char_count_t>      char_count_vec_t;
 
 struct freq_analysis_data_t {
     uint16_t    dbyte;
@@ -268,32 +270,33 @@ void init_utf8_char_table()
     }
 }
 
-static void init_char_count(char_count_t char_cnt[])
+static void init_sbyte_char_count(char_count_t sbyte_char_cnt[])
 {
     for (size_t i = 0; i < MAX_CHAR; ++i) {
-        char_cnt[i].first = i;
-        char_cnt[i].second = 0;
+        sbyte_char_cnt[i].first = i;
+        sbyte_char_cnt[i].second = 0;
     }
 }
 
-static void print_char_cnt(const char_count_t char_cnt[])
+static void print_sbyte_char_cnt(const char_count_t sbyte_char_cnt[])
 {
     for (size_t i = 0; i < MAX_CHAR; ++i) {
-        unsigned char ch = (unsigned char)char_cnt[i].first;
-        if (char_cnt[i].second == 0)
+        unsigned char ch = (unsigned char)sbyte_char_cnt[i].first;
+        if (sbyte_char_cnt[i].second == 0)
             break;
         printf("%.2x ('%c'): %-6u    ", ch,
-               isprint(ch) ? ch : '?', char_cnt[i].second);
+               isprint(ch) ? ch : '?', sbyte_char_cnt[i].second);
     }
     printf("\n");
 }
 
-static void print_dbyte_char_cnt(const vector<char_count_t>& dbyte_char_cnt)
+static void print_dbyte_char_cnt(const char_count_vec_t& dbyte_char_cnt)
 {
-    for (vector<char_count_t>::const_iterator it = dbyte_char_cnt.begin();
+    for (char_count_vec_t::const_iterator it = dbyte_char_cnt.begin();
             it != dbyte_char_cnt.end(); ++it) {
         printf("%.4x: %-6u        ", it->first, it->second);
     }
+    printf("\n");
 }
 
 static const char* check_ucs_bom(const unsigned char* const buffer,
@@ -333,7 +336,7 @@ static const char* check_dbyte(uint16_t dbyte)
     return NULL;
 }
 
-static const char* check_freq_dbytes(const vector<char_count_t>& dbyte_char_cnt)
+static const char* check_freq_dbytes(const char_count_vec_t& dbyte_char_cnt)
 {
     size_t max_comp_idx = 10;
     if (max_comp_idx > dbyte_char_cnt.size()) {
@@ -357,16 +360,16 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
         return result;
     }
 
-    char_count_t char_cnt[MAX_CHAR];
-    map<uint16_t, uint32_t> mp_dbyte_char_cnt;
-    init_char_count(char_cnt);
+    char_count_t sbyte_char_cnt[MAX_CHAR];
+    char_count_map_t dbyte_char_cnt_map;
+    init_sbyte_char_count(sbyte_char_cnt);
 
     unsigned char ch;
     int last_ch = EOF;
     int utf8_state = UTF8_1;
     for (size_t i = 0; i < len; ++i) {
         ch = buffer[i];
-        char_cnt[ch].second++;
+        sbyte_char_cnt[ch].second++;
 
         // Check for binary data (including UTF-16/32)
         if (is_non_text(ch)) {
@@ -437,7 +440,7 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
         // Construct double-bytes and count
         if (last_ch != EOF) {
             uint16_t dbyte_char = (last_ch << 8) + ch;
-            mp_dbyte_char_cnt[dbyte_char]++;
+            dbyte_char_cnt_map[dbyte_char]++;
             dbyte_cnt++;
             if (last_ch > 0xa0 && ch > 0xa0) {
                 dbyte_hihi_cnt++;
@@ -449,16 +452,12 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
     }
 
     // Get the character counts in descending order
-    sort(char_cnt, char_cnt + MAX_CHAR, greater_char_count());
-
-    if (verbose) {
-        print_char_cnt(char_cnt);
-    }
+    sort(sbyte_char_cnt, sbyte_char_cnt + MAX_CHAR, greater_char_count());
 
     // Get the double-byte counts in descending order
-    vector<char_count_t> dbyte_char_cnt;
-    for (map<uint16_t, uint32_t>::iterator it = mp_dbyte_char_cnt.begin();
-            it != mp_dbyte_char_cnt.end(); ++it) {
+    char_count_vec_t dbyte_char_cnt;
+    for (char_count_map_t::iterator it = dbyte_char_cnt_map.begin();
+            it != dbyte_char_cnt_map.end(); ++it) {
         dbyte_char_cnt.push_back(*it);
     }
     sort(dbyte_char_cnt.begin(),
@@ -466,8 +465,8 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
          greater_char_count());
 
     if (verbose) {
+        print_sbyte_char_cnt(sbyte_char_cnt);
         print_dbyte_char_cnt(dbyte_char_cnt);
-        printf("\n");
         printf("%u characters\n", (unsigned)len);
         printf("%u double-byte characters\n", dbyte_cnt);
         printf("%u double-byte hi-hi characters\n", dbyte_hihi_cnt);
