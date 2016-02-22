@@ -1,7 +1,7 @@
 ﻿// vim: expandtab shiftwidth=4 softtabstop=4 tabstop=4
 
 /*
- * Copyright (C) 2006-2015 Wu Yongwei <wuyongwei@gmail.com>
+ * Copyright (C) 2006-2016 Wu Yongwei <wuyongwei@gmail.com>
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the authors be held liable for any
@@ -33,7 +33,7 @@
  * UTF-8, UTF-16/32 (little-endian or big-endian), Latin1, Windows-1252,
  * CP437, GB2312, GBK, Big5, and SJIS, among others.
  *
- * @version 1.18, 2015/12/29
+ * @version 1.19, 2016/02/22
  * @author  Wu Yongwei
  */
 
@@ -225,6 +225,8 @@ static size_t nul_count_word[2];
 static bool is_binary = false;
 static bool is_valid_utf8 = true;
 static bool is_valid_latin1 = true;
+static uint32_t dbyte_cnt = 0;
+static uint32_t dbyte_hihi_cnt = 0;
 
 bool verbose = false;
 
@@ -343,12 +345,10 @@ static const char* check_freq_dbytes(const vector<char_count_t>& dbyte_char_cnt)
     return NULL;
 }
 
-const char* tellenc2(const unsigned char* const buffer, const size_t len)
+const char* tellenc(const unsigned char* const buffer, const size_t len)
 {
     char_count_t char_cnt[MAX_CHAR];
     map<uint16_t, uint32_t> mp_dbyte_char_cnt;
-    uint32_t dbyte_cnt = 0;
-    uint32_t dbyte_hihi_cnt = 0;
 
     if (len >= 4) {
         if (const char* result = check_ucs_bom(buffer)) {
@@ -502,10 +502,6 @@ const char* tellenc2(const unsigned char* const buffer, const size_t len)
         // Only valid UTF-8 sequences
         return "utf-8";
     } else if (const char* enc = check_freq_dbytes(dbyte_char_cnt)) {
-        if (strcmp(enc, "gbk") == 0 && dbyte_hihi_cnt == dbyte_cnt) {
-            // Special case for GB2312: no high-byte followed by a low-byte
-            return "gb2312";
-        }
         return enc;
     } else if (dbyte_hihi_cnt * 100 / dbyte_cnt < 5) {
         // Mostly a low-byte follows a high-byte
@@ -514,12 +510,15 @@ const char* tellenc2(const unsigned char* const buffer, const size_t len)
     return NULL;
 }
 
-const char* tellenc(const char* const buffer, const size_t len)
+const char* tellenc_simplify(const char* const buffer, const size_t len)
 {
-    const char* enc = tellenc2((const unsigned char* const)buffer, len);
+    const char* enc = tellenc((const unsigned char* const)buffer, len);
     if (is_valid_latin1 && enc && strcmp(enc, "windows-1252") == 0) {
         // Latin1 is subset of Windows-1252
         return "latin1";
+    } else if (strcmp(enc, "gbk") == 0 && dbyte_hihi_cnt == dbyte_cnt) {
+        // Special case for GB2312: no high-byte followed by a low-byte
+        return "gb2312";
     } else {
         return enc;
     }
@@ -559,7 +558,7 @@ int __cdecl main(int argc, char* argv[])
     fclose(fp);
 
     init_utf8_char_table();
-    if (const char* enc = tellenc(buffer, len)) {
+    if (const char* enc = tellenc_simplify(buffer, len)) {
         puts(enc);
     } else {
         puts("unknown");
