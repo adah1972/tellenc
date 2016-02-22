@@ -307,12 +307,12 @@ static const char* check_ucs_bom(const unsigned char* const buffer,
         const char* pattern;
         size_t pattern_len;
     } patterns[] = {
-        { "ucs-4",      "\x00\x00\xFE\xFF",     4 },
-        { "ucs-4le",    "\xFF\xFE\x00\x00",     4 },
-        { "utf-8",      "\xEF\xBB\xBF",         3 },
-        { "utf-16",     "\xFE\xFF",             2 },
-        { "utf-16le",   "\xFF\xFE",             2 },
-        { NULL,         NULL,                   0 }
+        { "ucs-4",     "\x00\x00\xFE\xFF",  4 },
+        { "ucs-4le",   "\xFF\xFE\x00\x00",  4 },
+        { "utf-8",     "\xEF\xBB\xBF",      3 },
+        { "utf-16",    "\xFE\xFF",          2 },
+        { "utf-16le",  "\xFF\xFE",          2 },
+        { NULL,        NULL,                0 }
     };
     for (size_t i = 0; patterns[i].name; ++i) {
         const pattern_t& item = patterns[i];
@@ -512,7 +512,7 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
 
 const char* tellenc_simplify(const char* const buffer, const size_t len)
 {
-    const char* enc = tellenc((const unsigned char* const)buffer, len);
+    const char* enc = tellenc((const unsigned char*)buffer, len);
     if (is_valid_latin1 && enc && strcmp(enc, "windows-1252") == 0) {
         // Latin1 is subset of Windows-1252
         return "latin1";
