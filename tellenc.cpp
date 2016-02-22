@@ -324,26 +324,29 @@ static const char* check_ucs_bom(const unsigned char* const buffer,
     return NULL;
 }
 
-static const char* check_dbyte(uint16_t dbyte)
+static const char* check_freq_dbyte(uint16_t dbyte)
 {
     for (size_t i = 0;
             i < sizeof freq_analysis_data / sizeof(freq_analysis_data_t);
             ++i) {
         if (dbyte == freq_analysis_data[i].dbyte) {
+            if (verbose) {
+                printf("Found frequent double-byte %.4x\n", dbyte);
+            }
             return freq_analysis_data[i].enc;
         }
     }
     return NULL;
 }
 
-static const char* check_freq_dbytes(const char_count_vec_t& dbyte_char_cnt)
+static const char* search_freq_dbytes(const char_count_vec_t& dbyte_char_cnt)
 {
     size_t max_comp_idx = 10;
     if (max_comp_idx > dbyte_char_cnt.size()) {
         max_comp_idx = dbyte_char_cnt.size();
     }
     for (size_t i = 0; i < max_comp_idx; ++i) {
-        if (const char* enc = check_dbyte(dbyte_char_cnt[i].first)) {
+        if (const char* enc = check_freq_dbyte(dbyte_char_cnt[i].first)) {
             return enc;
         }
     }
@@ -501,7 +504,7 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
     } else if (is_valid_utf8) {
         // Only valid UTF-8 sequences
         return "utf-8";
-    } else if (const char* enc = check_freq_dbytes(dbyte_char_cnt)) {
+    } else if (const char* enc = search_freq_dbytes(dbyte_char_cnt)) {
         return enc;
     } else if (dbyte_hihi_cnt * 100 / dbyte_cnt < 5) {
         // Mostly a low-byte follows a high-byte
