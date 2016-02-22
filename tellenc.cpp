@@ -296,9 +296,10 @@ static void print_dbyte_char_cnt(const vector<char_count_t>& dbyte_char_cnt)
     }
 }
 
-static const char* check_ucs_bom(const unsigned char* const buffer)
+static const char* check_ucs_bom(const unsigned char* const buffer,
+                                 const size_t len)
 {
-    const struct {
+    const struct pattern_t {
         const char* name;
         const char* pattern;
         size_t pattern_len;
@@ -311,9 +312,10 @@ static const char* check_ucs_bom(const unsigned char* const buffer)
         { NULL,         NULL,                   0 }
     };
     for (size_t i = 0; patterns[i].name; ++i) {
-        if (memcmp(buffer, patterns[i].pattern, patterns[i].pattern_len)
-                == 0) {
-            return patterns[i].name;
+        const pattern_t& item = patterns[i];
+        if (len >= item.pattern_len &&
+            memcmp(buffer, item.pattern, item.pattern_len) == 0) {
+            return item.name;
         }
     }
     return NULL;
@@ -347,17 +349,16 @@ static const char* check_freq_dbytes(const vector<char_count_t>& dbyte_char_cnt)
 
 const char* tellenc(const unsigned char* const buffer, const size_t len)
 {
-    char_count_t char_cnt[MAX_CHAR];
-    map<uint16_t, uint32_t> mp_dbyte_char_cnt;
-
-    if (len >= 4) {
-        if (const char* result = check_ucs_bom(buffer)) {
-            return result;
-        }
-    } else if (len == 0) {
+    if (len == 0) {
         return "unknown";
     }
 
+    if (const char* result = check_ucs_bom(buffer, len)) {
+        return result;
+    }
+
+    char_count_t char_cnt[MAX_CHAR];
+    map<uint16_t, uint32_t> mp_dbyte_char_cnt;
     init_char_count(char_cnt);
 
     unsigned char ch;
