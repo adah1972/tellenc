@@ -110,6 +110,8 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0xb36f, "windows-1250" },         // "ło" (Polish)
     { 0xea7a, "windows-1250" },         // "ęz" (Polish)
     { 0xf377, "windows-1250" },         // "ów" (Polish)
+    { 0x9e69, "windows-1250" },         // "ži" (Slovenian)
+    { 0xe869, "windows-1250" },         // "či" (Slovenian)
     { 0xe020, "windows-1252" },         // "à " (French)
     { 0xe920, "windows-1252" },         // "é " (French)
     { 0xe963, "windows-1252" },         // "éc" (French)
