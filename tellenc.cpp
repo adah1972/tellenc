@@ -525,15 +525,16 @@ const char* tellenc(const unsigned char* const buffer, const size_t len)
 const char* tellenc_simplify(const char* const buffer, const size_t len)
 {
     const char* enc = tellenc((const unsigned char*)buffer, len);
-    if (is_valid_latin1 && enc && strcmp(enc, "windows-1252") == 0) {
-        // Latin1 is subset of Windows-1252
-        return "latin1";
-    } else if (strcmp(enc, "gbk") == 0 && dbyte_hihi_cnt == dbyte_cnt) {
-        // Special case for GB2312: no high-byte followed by a low-byte
-        return "gb2312";
-    } else {
-        return enc;
+    if (enc) {
+        if (strcmp(enc, "windows-1252") == 0 && is_valid_latin1) {
+            // Latin1 is subset of Windows-1252
+            return "latin1";
+        } else if (strcmp(enc, "gbk") == 0 && dbyte_hihi_cnt == dbyte_cnt) {
+            // Special case for GB2312: no high-byte followed by a low-byte
+            return "gb2312";
+        }
     }
+    return enc;
 }
 
 static void usage()
