@@ -228,6 +228,12 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0xcbcf, "koi8-r" },               // "ко"
     { 0xd3cb, "koi8-r" },               // "ск"
     { 0xd3d4, "koi8-r" },               // "ст"
+    { 0xa6a7, "koi8-u" },               // "ії"
+    { 0xa6ce, "koi8-u" },               // "ін"
+    { 0xa6d7, "koi8-u" },               // "ів"
+    { 0xa7ce, "koi8-u" },               // "їн"
+    { 0xd0cf, "koi8-u" },               // "по"
+    { 0xd4c9, "koi8-u" },               // "ти"
 };
 
 static size_t nul_count_byte[2];
