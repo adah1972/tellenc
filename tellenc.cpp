@@ -33,7 +33,7 @@
  * UTF-8, UTF-16/32 (little-endian or big-endian), Latin1, Windows-1252,
  * CP437, GB2312, GBK, Big5, and SJIS, among others.
  *
- * @version 1.19, 2016/02/22
+ * @version 1.20, 2016/02/27
  * @author  Wu Yongwei
  */
 
@@ -105,8 +105,8 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0x9a74, "windows-1250" },         // "št" (Czech)
     { 0xe865, "windows-1250" },         // "če" (Czech)
     { 0xf865, "windows-1250" },         // "ře" (Czech)
-    { 0xe973, "windows-1250" },         // "és" (Hungarian)
     { 0xe167, "windows-1250" },         // "ág" (Hungarian)
+    { 0xe96c, "windows-1250" },         // "él" (Hungarian)
     { 0xb36f, "windows-1250" },         // "ło" (Polish)
     { 0xea7a, "windows-1250" },         // "ęz" (Polish)
     { 0xf377, "windows-1250" },         // "ów" (Polish)
@@ -118,6 +118,8 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0xe4e4, "windows-1252" },         // "ää" (Finnish)
     { 0xe474, "windows-1252" },         // "ät" (German)
     { 0xfc72, "windows-1252" },         // "ür" (German)
+    { 0xed6e, "windows-1252" },         // "ín" (Spanish)
+    { 0xf36e, "windows-1252" },         // "ón" (Spanish)
     { 0x8220, "cp437" },                // "é " (French)
     { 0x8263, "cp437" },                // "éc" (French)
     { 0x8265, "cp437" },                // "ée" (French)
