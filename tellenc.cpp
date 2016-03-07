@@ -33,12 +33,11 @@
  * UTF-8, UTF-16/32 (little-endian or big-endian), Latin1, Windows-1252,
  * CP437, GB2312, GBK, Big5, and SJIS, among others.
  *
- * @version 1.20, 2016/02/27
+ * @version 1.21, 2016/03/07
  * @author  Wu Yongwei
  */
 
 #include <algorithm>        // sort
-#include <functional>       // binary_function
 #include <map>              // map
 #include <memory>           // pair
 #include <vector>           // vector
@@ -69,11 +68,8 @@ struct freq_analysis_data_t {
     const char* enc;
 };
 
-struct greater_char_count :
-        public binary_function<const char_count_t&,
-                               const char_count_t&,
-                               bool> {
-    result_type operator()(first_argument_type lhs, second_argument_type rhs)
+struct greater_char_count {
+    bool operator()(const char_count_t& lhs, const char_count_t& rhs)
     {
         if (lhs.second > rhs.second) {
             return true;
