@@ -33,7 +33,7 @@
  * UTF-8, UTF-16/32 (little-endian or big-endian), Latin1, Windows-1252,
  * CP437, GB2312, GBK, Big5, and SJIS, among others.
  *
- * @version 1.21, 2016/03/07
+ * @version 1.22, 2016/07/26
  * @author  Wu Yongwei
  */
 
@@ -131,7 +131,11 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0xcdcd, "cp437" },                // "══"
     { 0xdbdb, "cp437" },                // "██"
     { 0xa1a1, "gbk" },                  // "　"
+    { 0xa1a2, "gbk" },                  // "、"
     { 0xa1a3, "gbk" },                  // "。"
+    { 0xa1a4, "gbk" },                  // "·"
+    { 0xa1b6, "gbk" },                  // "《"
+    { 0xa1b7, "gbk" },                  // "》"
     { 0xa3ac, "gbk" },                  // "，"
     { 0xa3ba, "gbk" },                  // "："
     { 0xb5c4, "gbk" },                  // "的"
@@ -150,6 +154,7 @@ static freq_analysis_data_t freq_analysis_data[] = {
     { 0xc9cf, "gbk" },                  // "上"
     { 0xbfb4, "gbk" },                  // "看"
     { 0xd6ae, "gbk" },                  // "之"
+    { 0xbbb9, "gbk" },                  // "还"
     { 0xbfc9, "gbk" },                  // "可"
     { 0xbaf3, "gbk" },                  // "后"
     { 0xd6d0, "gbk" },                  // "中"
